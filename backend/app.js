@@ -1,6 +1,7 @@
 import express from "express";
 import cookieparser from "cookie-parser";
 import { PORT } from "./config/env.js";
+import connectToDatabase from "./config/database.js";
 
 const app = express();
 app.use(express.json());
@@ -11,6 +12,7 @@ app.get("/", (req, res) => {
   res.send("Test successful");
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server listening on http://localhost:${PORT}`);
+  await connectToDatabase();
 });
