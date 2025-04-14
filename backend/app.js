@@ -1,5 +1,6 @@
 import express from "express";
 import cookieparser from "cookie-parser";
+import { PORT } from "./config/env.js";
 
 const app = express();
 app.use(express.json());
@@ -10,6 +11,6 @@ app.get("/", (req, res) => {
   res.send("Test successful");
 });
 
-app.listen(5580, () => {
-  console.log(`Server listening on http://localhost:${5580}`);
+app.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
