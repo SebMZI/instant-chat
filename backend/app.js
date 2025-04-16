@@ -29,9 +29,31 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/api/v1/auth", authRouter);
 
 io.on("connection", (socket) => {
+  let users = [];
   console.log(
     `User ${socket.id} / ${socket.handshake.auth.username} connected`
   );
+
+  const sockets = io.of("/").sockets;
+  for (const [id, currentSocket] of sockets) {
+    if (id !== socket.id) {
+      console.log("hey");
+
+      console.log({
+        userId: id,
+        username: currentSocket.handshake.auth.username,
+      });
+
+      users.push({
+        userId: id,
+        username: currentSocket.handshake.auth.username,
+        connected: true,
+      });
+    }
+  }
+
+  console.log("Users", users);
+  socket.emit("users", users);
 
   socket.on("message", (data) => {
     let content = { ...data.messageObj };

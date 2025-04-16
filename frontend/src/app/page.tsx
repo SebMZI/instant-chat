@@ -12,6 +12,9 @@ import Modal from "@/components/Modal";
 
 export default function Home() {
   const socket = getSocket();
+  const [users, setUsers] = useState<
+    { userId: number; username: string; connected: boolean }[]
+  >([]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -27,6 +30,18 @@ export default function Home() {
       setMessages((prev) => [...prev, data]);
       console.log("Message reçu :", data);
     };
+
+    socket.on("users", (data) => {
+      if (!data) return;
+      for (const [key, value] of Object.entries(data)) {
+        if (value) {
+          setUsers((prev) => [
+            ...prev,
+            value as { userId: number; username: string; connected: boolean },
+          ]);
+        }
+      }
+    });
 
     socket.on("disconnect", handleDisconnect);
     socket.on("message", handleMessage);
@@ -112,7 +127,37 @@ export default function Home() {
           </Modal>
         ) : null}
         <div className="border-r border-gray-300 flex flex-col justify-between">
-          <div></div>
+          <ul>
+            {users && users.length > 0
+              ? users.map(
+                  (
+                    user: {
+                      userId: number;
+                      username: string;
+                      connected: boolean;
+                    },
+                    i
+                  ) => (
+                    <li
+                      key={i}
+                      className="px-5 py-2.5 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
+                    >
+                      <p className="font-semibold">{user.username}</p>
+                      <div className="flex gap-1.5 items-center my-0.5">
+                        <span
+                          className={`h-2 w-2 ${
+                            !user.connected ? "bg-orange-500" : "bg-green-500"
+                          } rounded-full`}
+                        ></span>
+                        <p className="text-xs">
+                          {!user.connected ? "Disconnected" : "Connected"}
+                        </p>
+                      </div>
+                    </li>
+                  )
+                )
+              : null}
+          </ul>
           <button
             className="w-full py-5 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
             onClick={() =>
@@ -163,8 +208,8 @@ export default function Home() {
                   self: true,
                   timestamp: new Date().toLocaleTimeString(),
                 };
+                handleSendMessage({ ...messageObj, self: undefined }, socket);
                 setMessages((prev) => [...prev, messageObj]);
-                handleSendMessage(messageObj, socket);
                 setMessage("");
               }}
             >
