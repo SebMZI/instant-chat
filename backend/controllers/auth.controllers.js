@@ -48,9 +48,12 @@ export const signup = async (req, res, next) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 24 heures
     });
 
     res.status(201).json({
+      success: true,
       statusMessage: "User successfully created",
       data: {
         token,
@@ -91,14 +94,34 @@ export const signin = async (req, res, next) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 heures
     });
 
     res.status(200).json({
+      success: true,
       statusMessage: "User successfully logged in",
       data: {
         token,
         user,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const signout = async (req, res, next) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    res.status(200).json({
+      success: true,
+      statusMessage: "User successfully logged out",
     });
   } catch (error) {
     next(error);

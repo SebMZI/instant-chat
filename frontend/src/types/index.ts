@@ -13,3 +13,7 @@ export interface Message {
     self?: boolean;
     timestamp: string;
 }
+
+export interface Modal {
+    close: () => void;
+}
