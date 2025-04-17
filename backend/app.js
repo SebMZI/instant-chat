@@ -36,23 +36,13 @@ io.on("connection", (socket) => {
 
   const sockets = io.of("/").sockets;
   for (const [id, currentSocket] of sockets) {
-    if (id !== socket.id) {
-      console.log("hey");
-
-      console.log({
-        userId: id,
-        username: currentSocket.handshake.auth.username,
-      });
-
-      users.push({
-        userId: id,
-        username: currentSocket.handshake.auth.username,
-        connected: true,
-      });
-    }
+    users.push({
+      userId: id,
+      username: currentSocket.handshake.auth.username,
+      connected: true,
+    });
   }
 
-  console.log("Users", users);
   socket.emit("users", users);
 
   socket.on("message", (data) => {
@@ -65,6 +55,15 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`User ${socket.id} disconnected`);
+
+    for (let i = 0; i < users.length; i++) {
+      if (users[i].userId == socket.id) {
+        users[i].connected = false;
+        break;
+      }
+    }
+
+    socket.broadcast.emit("users", users);
   });
 });
 

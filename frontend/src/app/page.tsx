@@ -13,7 +13,7 @@ import Modal from "@/components/Modal";
 export default function Home() {
   const socket = getSocket();
   const [users, setUsers] = useState<
-    { userId: number; username: string; connected: boolean }[]
+    { userId: string; username: string; connected: boolean; self: boolean }[]
   >([]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,6 +24,8 @@ export default function Home() {
     const handleDisconnect = () => {
       console.log("Déconnecté :", socket.connected);
       setIsConnected(socket.connected);
+      setMessages([]);
+      setUsers([]);
     };
 
     const handleMessage = (data: Message) => {
@@ -31,18 +33,21 @@ export default function Home() {
       console.log("Message reçu :", data);
     };
 
-    socket.on("users", (data) => {
+    const handleUsers = (data: {
+      [key: string]: {
+        userId: string;
+        username: string;
+        connected: boolean;
+        self: boolean;
+      };
+    }) => {
       if (!data) return;
-      for (const [key, value] of Object.entries(data)) {
-        if (value) {
-          setUsers((prev) => [
-            ...prev,
-            value as { userId: number; username: string; connected: boolean },
-          ]);
-        }
-      }
-    });
+      console.log("USERS", data);
+      const newUsers = Object.values(data).filter(Boolean);
+      setUsers(newUsers);
+    };
 
+    socket.on("users", handleUsers);
     socket.on("disconnect", handleDisconnect);
     socket.on("message", handleMessage);
 
@@ -54,6 +59,7 @@ export default function Home() {
     return () => {
       socket.off("disconnect", handleDisconnect);
       socket.off("message", handleMessage);
+      socket.off("users", handleUsers);
     };
   }, [socket]);
 
@@ -132,29 +138,30 @@ export default function Home() {
               ? users.map(
                   (
                     user: {
-                      userId: number;
+                      userId: string;
                       username: string;
                       connected: boolean;
                     },
                     i
-                  ) => (
-                    <li
-                      key={i}
-                      className="px-5 py-2.5 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
-                    >
-                      <p className="font-semibold">{user.username}</p>
-                      <div className="flex gap-1.5 items-center my-0.5">
-                        <span
-                          className={`h-2 w-2 ${
-                            !user.connected ? "bg-orange-500" : "bg-green-500"
-                          } rounded-full`}
-                        ></span>
-                        <p className="text-xs">
-                          {!user.connected ? "Disconnected" : "Connected"}
-                        </p>
-                      </div>
-                    </li>
-                  )
+                  ) =>
+                    user.userId !== socket.id ? (
+                      <li
+                        key={i}
+                        className="px-5 py-2.5 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
+                      >
+                        <p className="font-semibold">{user.username}</p>
+                        <div className="flex gap-1.5 items-center my-0.5">
+                          <span
+                            className={`h-2 w-2 ${
+                              !user.connected ? "bg-orange-500" : "bg-green-500"
+                            } rounded-full`}
+                          ></span>
+                          <p className="text-xs">
+                            {!user.connected ? "Disconnected" : "Connected"}
+                          </p>
+                        </div>
+                      </li>
+                    ) : null
                 )
               : null}
           </ul>
