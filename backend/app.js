@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
   }
 
   socket.emit("users", users);
+  socket.broadcast.emit("users", users);
 
   socket.on("message", (data) => {
     let content = { ...data.messageObj };

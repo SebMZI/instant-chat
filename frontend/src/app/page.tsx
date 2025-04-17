@@ -191,7 +191,7 @@ export default function Home() {
                   }`}
                 >
                   <span className="font-bold text-xs">{msg.from}</span>
-                  <p className="text-sm">{msg.message}</p>
+                  <p className="text-sm leading-3.5">{msg.message}</p>
                   <span className="text-[8px]">{msg.timestamp}</span>
                 </div>
               </div>
